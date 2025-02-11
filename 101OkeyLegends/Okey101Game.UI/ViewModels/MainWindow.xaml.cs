@@ -14,79 +14,119 @@ using _101OkeyLegends.Okey101Game.Domain.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Linq;
+using Microsoft.AspNetCore.SignalR.Client;
+using System.Net.Http;
 
-
-namespace _101OkeyLegends.Okey101Game.UI.Views
+namespace _101OkeyLegends.Okey101Game.UI.ViewModels
 {
     public class MainWindowViewModel : ObservableObject
     {
-        private readonly GameManager _gameManager;
-        public ObservableCollection<Player> Players { get; set; }
+        public ObservableCollection<Tile> MyDeck { get; set; } = new ObservableCollection<Tile>();
+        public ObservableCollection<Tile> RemainingTiles { get; set; } = new ObservableCollection<Tile>();
+        public ObservableCollection<string> PlayerList { get; set; } = new ObservableCollection<string>();
 
-        private ObservableCollection<Tile> _player1Tiles;
-        public ObservableCollection<Tile> Player1Tiles
+        private string _playerName;
+        public string PlayerName
         {
-            get => _player1Tiles;
-            set => SetProperty(ref _player1Tiles, value);
+            get => _playerName;
+            set => SetProperty(ref _playerName, value);
         }
 
-        private ObservableCollection<Tile> _player2Tiles;
-        public ObservableCollection<Tile> Player2Tiles
+        private bool _isGameStarted;
+        public bool IsGameStarted
         {
-            get => _player2Tiles;
-            set => SetProperty(ref _player2Tiles, value);
+            get => _isGameStarted;
+            set => SetProperty(ref _isGameStarted, value);
         }
+        public bool CanStartGame => PlayerList.Count == 4;
 
-        private ObservableCollection<Tile> _player3Tiles;
-        public ObservableCollection<Tile> Player3Tiles
-        {
-            get => _player3Tiles;
-            set => SetProperty(ref _player3Tiles, value);
-        }
-
-        private ObservableCollection<Tile> _player4Tiles;
-        public ObservableCollection<Tile> Player4Tiles
-        {
-            get => _player4Tiles;
-            set => SetProperty(ref _player4Tiles, value);
-        }
+        public RelayCommand ConnectCommand { get; }
         public RelayCommand StartGameCommand { get; }
+
+        private HubConnection _connection;
+
         public MainWindowViewModel()
         {
-            _gameManager = new GameManager();
-            Players = new ObservableCollection<Player>();
+            PlayerName = "Oyuncu1";
+            IsGameStarted = false;
+            ConnectCommand = new RelayCommand(async () => await ConnectToHub());
+            StartGameCommand = new RelayCommand(async () => await ExecuteStartGame(), () => CanStartGame);
 
-            // Komut, oyunu başlatır ve oyuncu listesini günceller.
-            StartGameCommand = new RelayCommand(StartGame);
+
+            // PlayerList güncellendiğinde CanStartGame bilgisini de tetikleyelim
+            PlayerList.CollectionChanged += (s, e) =>
+            {
+                OnPropertyChanged(nameof(CanStartGame));
+                StartGameCommand.NotifyCanExecuteChanged();
+            };
         }
+
+        private async Task ExecuteStartGame()
+        {
+            // Sunucuya oyunu başlat çağrısı yapıyoruz.
+            await _connection.InvokeAsync("StartGameFromClient");
+        }
+
+        private async Task ConnectToHub()
+        {
+            _connection = new HubConnectionBuilder()
+                .WithUrl("http://localhost:5000/gamehub")
+                .WithAutomaticReconnect()
+                .Build();
+
+            _connection.On<string[]>("UpdatePlayerList", (players) =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    PlayerList.Clear();
+                    foreach (var p in players)
+                        PlayerList.Add(p);
+                });
+            });
+
+            _connection.On<Tile[]>("ReceiveDeck", (deck) =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MyDeck.Clear();
+                    foreach (var tile in deck)
+                        MyDeck.Add(tile);
+                });
+            });
+
+            _connection.On<Tile[]>("ReceiveRemainingTiles", (tiles) =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    RemainingTiles.Clear();
+                    foreach (var tile in tiles)
+                        RemainingTiles.Add(tile);
+                });
+            });
+
+            _connection.On("GameStarted", () =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsGameStarted = true;
+                });
+            });
+
+            try
+            {
+                await _connection.StartAsync();
+                await _connection.InvokeAsync("JoinGame", PlayerName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Bağlantı hatası: {ex.Message}");
+            }
+        }
+
         private void StartGame()
         {
-            // Örnek oyuncu isimleri; gerçek uygulamada kullanıcı girişi alınabilir.
-            var playerNames = new[] { "Oyuncu_1", "Oyuncu_2", "Oyuncu_3", "Oyuncu_4" };
-            _gameManager.InitializeGame(playerNames);
-
-            // UI için oyuncu listesini güncelle
-            Players.Clear();
-            foreach (var player in _gameManager.Players)
-            {
-                Players.Add(player);
-            }
-
-            // Her oyuncunun elindeki taşları alfabetik olarak sıralı şekilde alıyoruz.
-            // Sıralama için DisplayName özelliğini kullanıyoruz.
-            if (_gameManager.Players.Count >= 4)
-            {
-                Player1Tiles = new ObservableCollection<Tile>(
-                    _gameManager.Players[0].Hand.OrderBy(t => t.Color.ToString()).ThenBy(t => t.Number));
-                Player2Tiles = new ObservableCollection<Tile>(
-                    _gameManager.Players[1].Hand.OrderBy(t => t.Color.ToString()).ThenBy(t => t.Number));
-                Player3Tiles = new ObservableCollection<Tile>(
-                    _gameManager.Players[2].Hand.OrderBy(t => t.Color.ToString()).ThenBy(t => t.Number));
-                Player4Tiles = new ObservableCollection<Tile>(
-                    _gameManager.Players[3].Hand.OrderBy(t => t.Color.ToString()).ThenBy(t => t.Number));
-            }
-
-            // İsteğe bağlı olarak, gösterge ve joker taş bilgilerini de UI'a aktarabilirsiniz.
+            IsGameStarted = true;
+            // Ek oyun başlangıç ayarlarını burada yapabilirsiniz.
         }
     }
 }

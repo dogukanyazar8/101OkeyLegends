@@ -3,78 +3,128 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:_101OkeyLegends.Okey101Game.UI.Views"
-        xmlns:vm="clr-namespace:_101OkeyLegends.Okey101Game.UI.Views"
+        xmlns:local="clr-namespace:_101OkeyLegends.Okey101Game.UI.ViewModels"
+        xmlns:vm="clr-namespace:_101OkeyLegends.Okey101Game.UI.ViewModels"
         mc:Ignorable="d"
-        Title="101 Okey Legends" Height="600" Width="800">
+        Title="101 Okey - Multiplayer" Height="700" Width="600" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
+        <Window.DataContext>
+            <vm:MainWindowViewModel/>
+        </Window.DataContext>
+        <Window.Resources>
+            <!-- Başlık ve metinler için stil -->
+            <Style TargetType="TextBlock" x:Key="HeaderText">
+                <Setter Property="FontSize" Value="28"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="#333"/>
+            </Style>
+            <!-- Modern Button stili (köşeler yuvarlatılmamış) -->
+            <Style TargetType="Button" x:Key="ModernButton">
+                <Setter Property="Background" Value="#2196F3"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Padding" Value="10,5"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" 
+                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- Modern TextBox stili -->
+            <Style TargetType="TextBox" x:Key="ModernTextBox">
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Padding" Value="5"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="BorderBrush" Value="#999"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+            <!-- Modern ListBox stili -->
+            <Style TargetType="ListBox" x:Key="ModernListBox">
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="Padding" Value="5"/>
+                <Setter Property="BorderBrush" Value="#ccc"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+        </Window.Resources>
+        <Grid Background="#f0f0f0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-    <Window.DataContext>
-        <vm:MainWindowViewModel/>
-    </Window.DataContext>
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <!-- Üst kısımda Oyunu Başlat butonu -->
-        <Button Content="Oyunu Başlat" Command="{Binding StartGameCommand}" 
-                Width="250" Height="50" HorizontalAlignment="Center"/>
-        <!-- Alt kısımda 4 ayrı ListBox -->
-        <Grid Grid.Row="1" Margin="0,10,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+            <!-- Üst Başlık Bölgesi (köşeler düz) -->
+            <Border Grid.Row="0" Background="#2196F3" Padding="20">
+                <TextBlock Text="101 Okey - Multiplayer" Foreground="White" Style="{StaticResource HeaderText}" 
+                 FontSize="32" HorizontalAlignment="Center"/>
+            </Border>
 
-            <!-- Oyuncu 1 -->
-            <StackPanel Grid.Column="0">
-                <TextBlock Text="Oyuncu 1" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ListBox ItemsSource="{Binding Player1Tiles}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding DisplayName}"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </StackPanel>
+            <!-- İçerik Bölgesi -->
+            <Grid Grid.Row="1" Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <!-- Oyuncu 2 -->
-            <StackPanel Grid.Column="1">
-                <TextBlock Text="Oyuncu 2" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ListBox ItemsSource="{Binding Player2Tiles}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding DisplayName}"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </StackPanel>
+                <!-- Lobi Paneli (köşeleri keskin) -->
+                <Border Grid.Row="0" Padding="20" Background="White" BorderBrush="#ccc" BorderThickness="1">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsGameStarted}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <TextBlock Text="Lobi" Style="{StaticResource HeaderText}" FontSize="28" 
+                     HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,10">
+                            <TextBlock Text="Oyuncu Adı:" VerticalAlignment="Center" FontSize="16" Margin="0,0,5,0"/>
+                            <TextBox Text="{Binding PlayerName, UpdateSourceTrigger=PropertyChanged}" Width="250" Style="{StaticResource ModernTextBox}"/>
+                            <Button Content="Bağlan" Command="{Binding ConnectCommand}" Style="{StaticResource ModernButton}" Width="135"/>
+                        </StackPanel>
+                        <TextBlock Text="Bağlı Oyuncular:" FontSize="18" FontWeight="Bold" Margin="5"/>
+                        <ListBox ItemsSource="{Binding PlayerList}" Height="150" Style="{StaticResource ModernListBox}"/>
+                        <Button Height="50" Content="Oyunu Başlat" Command="{Binding StartGameCommand}" 
+                  Style="{StaticResource ModernButton}" IsEnabled="{Binding CanStartGame}" 
+                  Margin="10" Width="200" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
 
-            <!-- Oyuncu 3 -->
-            <StackPanel Grid.Column="2">
-                <TextBlock Text="Oyuncu 3" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ListBox ItemsSource="{Binding Player3Tiles}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding DisplayName}"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </StackPanel>
-
-            <!-- Oyuncu 4 -->
-            <StackPanel Grid.Column="3">
-                <TextBlock Text="Oyuncu 4" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ListBox ItemsSource="{Binding Player4Tiles}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding DisplayName}"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </StackPanel>
+                <!-- Oyun Paneli (köşeleri keskin) -->
+                <Border Grid.Row="1" Padding="20" Background="White" BorderBrush="#ccc" BorderThickness="1" Margin="0,20,0,0">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsGameStarted}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <TextBlock Text="Oyun Başladı!" Style="{StaticResource HeaderText}" FontSize="28" 
+                     HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <TextBlock Text="Benim Destem:" FontSize="18" FontWeight="SemiBold" Margin="5"/>
+                        <ListBox ItemsSource="{Binding MyDeck}" Height="200" Style="{StaticResource ModernListBox}"/>
+                        <TextBlock Text="Dağıtılmayan Taşlar:" FontSize="18" FontWeight="SemiBold" Margin="10,20,10,5"/>
+                        <ListBox ItemsSource="{Binding RemainingTiles}" Height="200" Style="{StaticResource ModernListBox}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
-    </Grid>
-</Window>
+    </Window>

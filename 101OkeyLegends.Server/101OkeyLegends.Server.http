@@ -1,0 +1,6 @@
+@_101OkeyLegends.Server_HostAddress = http://localhost:5194
+
+GET {{_101OkeyLegends.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
