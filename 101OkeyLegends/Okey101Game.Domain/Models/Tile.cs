@@ -25,7 +25,25 @@ namespace _101OkeyLegends.Okey101Game.Domain.Models
 
         public override string ToString()
         {
-            return $"{Color} {Number}{(IsJoker ? " (Okey)" : string.Empty)}";
+            return IsJoker ? $"Okey (as {Color} {Number})" : $"{Color} {Number}";
+        }
+
+        // Değer bazlı karşılaştırma için Equals metodunu override edelim.
+        public override bool Equals(object obj)
+        {
+            if (obj is Tile other)
+            {
+                return this.Color == other.Color &&
+                       this.Number == other.Number &&
+                       this.IsJoker == other.IsJoker;
+            }
+            return false;
+        }
+
+        // Aynı özelliklere göre hash kodunu hesaplayalım.
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Color, Number, IsJoker);
         }
     }
 }

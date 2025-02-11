@@ -38,10 +38,22 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             get => _isGameStarted;
             set => SetProperty(ref _isGameStarted, value);
         }
+
+        // Yeni: Oluşturulan serileri listeleyecek koleksiyon (her seri açıklaması string olarak)
+        public ObservableCollection<string> SeriesTiles { get; set; } = new ObservableCollection<string>();
+
+        // Yeni: En yüksek seri toplamını tutan property
+        private int _seriesSum;
+        public int SeriesSum
+        {
+            get => _seriesSum;
+            set => SetProperty(ref _seriesSum, value);
+        }
         public bool CanStartGame => PlayerList.Count == 4;
 
         public RelayCommand ConnectCommand { get; }
         public RelayCommand StartGameCommand { get; }
+        public RelayCommand SeriDizCommand { get; }
 
         private HubConnection _connection;
 
@@ -51,6 +63,8 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             IsGameStarted = false;
             ConnectCommand = new RelayCommand(async () => await ConnectToHub());
             StartGameCommand = new RelayCommand(async () => await ExecuteStartGame(), () => CanStartGame);
+            SeriDizCommand = new RelayCommand(ExecuteSeriDiz);
+
 
 
             // PlayerList güncellendiğinde CanStartGame bilgisini de tetikleyelim
@@ -127,6 +141,33 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
         {
             IsGameStarted = true;
             // Ek oyun başlangıç ayarlarını burada yapabilirsiniz.
+        }
+        private void ExecuteSeriDiz()
+        {
+            var gm = new GameManager();
+            // Güncellenmiş metodu kullanarak, PARTİSYON düzeyinde global olarak yalnızca 1 joker kullanılacak şekilde serileri alıyoruz.
+            var result = gm.GetMaxSeriesPartitionWithJoker(MyDeck.ToList());
+
+            SeriesTiles.Clear();
+            if (result.bestPartition.Any())
+            {
+                // Her seriyi formatlayıp SeriesTiles koleksiyonuna ekleyelim.
+                foreach (var series in result.bestPartition)
+                {
+                    string seriesDesc = string.Join(" - ", series.Select(t =>
+                        t.IsJoker
+                          ? $"Okey (as {t.Color} {t.Number})"
+                          : $"{t.Color} {t.Number}"));
+                    seriesDesc += $" (Toplam: {series.Sum(t => t.Number)})";
+                    SeriesTiles.Add(seriesDesc);
+                }
+                // Global partition’ın toplam değerini SeriesSum'e atıyoruz.
+                SeriesSum = result.totalSum;
+            }
+            else
+            {
+                SeriesSum = 0;
+            }
         }
     }
 }

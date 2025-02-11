@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:_101OkeyLegends.Okey101Game.UI.ViewModels"
         xmlns:vm="clr-namespace:_101OkeyLegends.Okey101Game.UI.ViewModels"
         mc:Ignorable="d"
-        Title="101 Okey - Multiplayer" Height="700" Width="600" ResizeMode="NoResize"
+        Title="101 Okey - Multiplayer" Height="1000" Width="600" ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen">
         <Window.DataContext>
             <vm:MainWindowViewModel/>
@@ -122,8 +122,20 @@
                         <TextBlock Text="Benim Destem:" FontSize="18" FontWeight="SemiBold" Margin="5"/>
                         <ListBox ItemsSource="{Binding MyDeck}" Height="200" Style="{StaticResource ModernListBox}"/>
                         <TextBlock Text="Dağıtılmayan Taşlar:" FontSize="18" FontWeight="SemiBold" Margin="10,20,10,5"/>
-                        <ListBox ItemsSource="{Binding RemainingTiles}" Height="200" Style="{StaticResource ModernListBox}"/>
+                        <ListBox ItemsSource="{Binding RemainingTiles}" Height="10" Style="{StaticResource ModernListBox}"/>
+                    <!-- Yeni Eklenen Alan: Elimi Seri Diz -->
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <Button Content="Elimi Seri Diz" Command="{Binding SeriDizCommand}" 
+                      Width="150" Height="40" Background="Orange" Foreground="White"/>
+                        <Label Content="{Binding SeriesSum, StringFormat='Seri Toplamı: {0}'}"
+                     FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Oluşturulan Seri:" HorizontalAlignment="Center" 
+                         FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
+                        <ListBox ItemsSource="{Binding SeriesTiles}" Height="150"
+                       FontFamily="Segoe UI" FontSize="16" Padding="8"
+                       Background="White" BorderBrush="Blue" BorderThickness="1"/>
                     </StackPanel>
+                </StackPanel>
                 </Border>
             </Grid>
         </Grid>

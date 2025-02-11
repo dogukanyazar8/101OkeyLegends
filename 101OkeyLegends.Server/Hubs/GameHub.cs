@@ -12,7 +12,6 @@ namespace _101OkeyLegends.Server.Hubs
 
         // Oyun mantığını yöneten GameManager örneği (varsa)
         private static GameManager _gameManager = new GameManager();
-
         public async Task JoinGame(string playerName)
         {
             // Bağlantı ID'si ile oyuncu adını eşleştiriyoruz.
@@ -54,7 +53,6 @@ namespace _101OkeyLegends.Server.Hubs
                 await Clients.All.SendAsync("GameStarted");
             }
         }
-
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             ConnectedPlayers.TryRemove(Context.ConnectionId, out _);
