@@ -39,29 +39,21 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             set => SetProperty(ref _isGameStarted, value);
         }
 
-        // Seri dizim sonucu için
+        // Yeni: Oluşturulan serileri listeleyecek koleksiyon (her seri açıklaması string olarak)
         public ObservableCollection<string> SeriesTiles { get; set; } = new ObservableCollection<string>();
+
+        // Yeni: En yüksek seri toplamını tutan property
         private int _seriesSum;
         public int SeriesSum
         {
             get => _seriesSum;
             set => SetProperty(ref _seriesSum, value);
         }
-
-        // Çift dizim sonucu için
-        public ObservableCollection<string> PairTiles { get; set; } = new ObservableCollection<string>();
-        private int _pairSum;
-        public int PairSum
-        {
-            get => _pairSum;
-            set => SetProperty(ref _pairSum, value);
-        }
         public bool CanStartGame => PlayerList.Count == 4;
 
         public RelayCommand ConnectCommand { get; }
         public RelayCommand StartGameCommand { get; }
         public RelayCommand SeriDizCommand { get; }
-        public RelayCommand CiftDizCommand { get; }
 
         private HubConnection _connection;
 
@@ -72,7 +64,6 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             ConnectCommand = new RelayCommand(async () => await ConnectToHub());
             StartGameCommand = new RelayCommand(async () => await ExecuteStartGame(), () => CanStartGame);
             SeriDizCommand = new RelayCommand(ExecuteSeriDiz);
-            CiftDizCommand = new RelayCommand(ExecuteCiftDiz);
 
 
 
@@ -154,48 +145,28 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
         private void ExecuteSeriDiz()
         {
             var gm = new GameManager();
+            // Güncellenmiş metodu kullanarak, PARTİSYON düzeyinde global olarak yalnızca 1 joker kullanılacak şekilde serileri alıyoruz.
             var result = gm.GetMaxSeriesPartitionWithJoker(MyDeck.ToList());
 
             SeriesTiles.Clear();
             if (result.bestPartition.Any())
             {
+                // Her seriyi formatlayıp SeriesTiles koleksiyonuna ekleyelim.
                 foreach (var series in result.bestPartition)
                 {
                     string seriesDesc = string.Join(" - ", series.Select(t =>
-                        t.IsJoker ? $"Joker (as {t.Color} {t.Number})" : $"{t.Color} {t.Number}"));
+                        t.IsJoker
+                          ? $"Okey (as {t.Color} {t.Number})"
+                          : $"{t.Color} {t.Number}"));
                     seriesDesc += $" (Toplam: {series.Sum(t => t.Number)})";
                     SeriesTiles.Add(seriesDesc);
                 }
+                // Global partition’ın toplam değerini SeriesSum'e atıyoruz.
                 SeriesSum = result.totalSum;
             }
             else
             {
                 SeriesSum = 0;
-            }
-        }
-
-        private void ExecuteCiftDiz()
-        {
-            var gm = new GameManager();
-            var result = gm.GetMaxPairPartitionWithJoker(MyDeck.ToList());
-
-            PairTiles.Clear();
-            if (result.bestPairPartition.Any())
-            {
-                foreach (var pair in result.bestPairPartition)
-                {
-                    string pairDesc = string.Join(" - ", pair.Select(t =>
-                        t.IsJoker ? $"Okey (as {t.Color} {t.Number})" : $"{t.Color} {t.Number}"));
-                    // Burada, çift olduğu bilgisini ekleyelim.
-                    pairDesc += " (Çift)";
-                    PairTiles.Add(pairDesc);
-                }
-                // Çift toplamı artık çift sayısının adedidir.
-                PairSum = result.totalPairCount;
-            }
-            else
-            {
-                PairSum = 0;
             }
         }
     }

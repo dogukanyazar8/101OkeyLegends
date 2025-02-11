@@ -118,11 +118,101 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
             // Kalan taşlar oynanabilir veya oyun sonrasında kullanılabilir.
         }
 
+
         /// <summary>
-        /// Elindeki valid serilerden (Joker'leri de kullanarak) çakışmayan serilerden oluşan,
+        /// El (hand) içindeki tüm geçerli serileri (ardışık run'lar ve grup) Joker kullanımını da göz önünde bulundurarak bulur.
+        /// Her seri en az 3 taş içermelidir. Her seri içinde Joker yalnızca bir kere kullanılacaktır.
+        /// Dönüş: Her seri ve seri toplamını içeren tuple listesi.
+        /// </summary>
+        public List<(List<Tile> series, int sum)> GetAllValidSeriesWithJoker(List<Tile> hand)
+        {
+            var allSeries = new List<(List<Tile>, int)>();
+
+            // Eldeki Joker sayısını tespit edelim.
+            int jokerCount = hand.Count(t => t.IsJoker);
+            // Gerçek (Joker olmayan) taşları alalım.
+            var nonJokers = hand.Where(t => !t.IsJoker).ToList();
+
+            // 1. Renk bazlı ardışık seriler (run)
+            foreach (TileColor color in Enum.GetValues(typeof(TileColor)))
+            {
+                // Belirtilen renkten, Joker olmayan taşları artan sırada alalım.
+                var colorTiles = nonJokers
+                    .Where(t => t.Color == color)
+                    .OrderBy(t => t.Number)
+                    .ToList();
+
+                // Her bir başlangıç noktasından seriyi oluşturmaya çalışalım.
+                for (int i = 0; i < colorTiles.Count; i++)
+                {
+                    // Her seri için, Joker kullanımı yalnızca 1 ile sınırlandırılıyor.
+                    int availableJokers = Math.Min(jokerCount, 1);
+                    var currentSeries = new List<Tile>();
+                    int currentSum = 0;
+                    int expected = colorTiles[i].Number;
+
+                    // Beklenen sayıdan 13'e kadar ilerleyelim.
+                    for (int num = expected; num <= 13; num++)
+                    {
+                        // Bu numaraya sahip bir taş mevcut mu ve bu seri içinde henüz kullanılmamış mı?
+                        var tile = colorTiles.FirstOrDefault(t => t.Number == num && !currentSeries.Contains(t));
+                        if (tile != null)
+                        {
+                            currentSeries.Add(tile);
+                            currentSum += tile.Number;
+                        }
+                        else if (availableJokers > 0)
+                        {
+                            // Eğer gerçek taş yoksa ve Joker kullanılabiliyorsa,
+                            // Joker'i kullanarak eksik sayıyı dolduruyoruz.
+                            Tile fakeTile = new Tile(color, num) { IsJoker = true };
+                            currentSeries.Add(fakeTile);
+                            currentSum += num;
+                            availableJokers--; // Bu seri için Joker artık kullanılacak.
+                        }
+                        else
+                        {
+                            // Ne gerçek taş ne de Joker var; seriyi sonlandır.
+                            break;
+                        }
+                    }
+                    if (currentSeries.Count >= 3)
+                        allSeries.Add((new List<Tile>(currentSeries), currentSum));
+                }
+            }
+
+            // 2. Aynı sayıdan oluşan gruplar (group) – farklı renklerden
+            for (int num = 1; num <= 13; num++)
+            {
+                // Bu sayıya sahip gerçek taşları, renklerine göre gruplandıralım.
+                var groupTiles = nonJokers
+                    .Where(t => t.Number == num)
+                    .GroupBy(t => t.Color)
+                    .Select(g => g.First())
+                    .ToList();
+
+                // Grup oluşturulurken, gerçek taş sayısına ek olarak Joker kullanılabiliyorsa yalnızca 1 ekleyelim.
+                int possibleGroupSize = Math.Min(4, groupTiles.Count + (jokerCount > 0 ? 1 : 0));
+                if (possibleGroupSize >= 3)
+                {
+                    var groupSeries = new List<Tile>(groupTiles);
+                    if (groupSeries.Count < possibleGroupSize && jokerCount > 0)
+                    {
+                        // Joker'i kullanarak grubu tamamlıyoruz.
+                        groupSeries.Add(new Tile(TileColor.Kırmızı, num) { IsJoker = true });
+                    }
+                    int groupSum = groupSeries.Sum(t => t.Number);
+                    allSeries.Add((groupSeries, groupSum));
+                }
+            }
+
+            return allSeries;
+        }
+
+        /// <summary>
+        /// Elindeki valid serilerden (Jokerleri de kullanarak) çakışmayan serilerden oluşan,
         /// toplam değeri maksimum olan partition'ı bulur.
-        /// PARTİSYON düzeyinde kullanılan Joker sayısını 1 ile sınırlandırır.
-        /// (Bu fonksiyon seri perler için; GetMaxPairPartitionWithJoker, çift dizme işlemi için kullanılacaktır.)
+        /// Ek olarak, PARTİSYON düzeyinde kullanılan Joker sayısını 1 ile sınırlandırır.
         /// Dönüş: Tuple (List<List<Tile>> bestPartition, int totalSum)
         /// </summary>
         public (List<List<Tile>> bestPartition, int totalSum) GetMaxSeriesPartitionWithJoker(List<Tile> hand)
@@ -132,7 +222,7 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
             int bestSum = 0;
             List<List<Tile>> bestPartition = new List<List<Tile>>();
 
-            // DFS, global joker kullanımını takip eden parametre eklenmiştir.
+            // DFS (Derinlik Öncelikli Arama) fonksiyonuna ek olarak 'jokerUsed' parametresini ekliyoruz.
             void DFS(int index, HashSet<Tile> used, List<List<Tile>> currentPartition, int currentSum, int jokerUsed)
             {
                 if (currentSum > bestSum)
@@ -143,9 +233,12 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
                 for (int i = index; i < n; i++)
                 {
                     var series = validSeries[i].series;
+                    // Bu seride kaç tane Joker kullanıldığını sayalım.
                     int seriesJokerCount = series.Count(t => t.IsJoker);
+                    // PARTİSYON düzeyinde toplamda yalnızca 1 Joker kullanılmasına izin verelim.
                     if (jokerUsed + seriesJokerCount > 1)
                         continue;
+                    // Eğer serideki herhangi bir taş (değer bazında) zaten kullanılmışsa, bu seriyi atla.
                     if (series.Any(tile => used.Contains(tile)))
                         continue;
                     foreach (var tile in series)
@@ -160,128 +253,6 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
 
             DFS(0, new HashSet<Tile>(), new List<List<Tile>>(), 0, 0);
             return (bestPartition, bestSum);
-        }
-
-        /// <summary>
-        /// Elindeki taşlardan, aynı (Color, Number) değerine sahip çiftleri (pair) oluşturur.
-        /// Bir çift; aynı numaralı iki taş olarak tanımlanır.
-        /// Eğer bir grup için tek taş varsa ve Joker mevcutsa, Joker kullanılarak çift tamamlanır.
-        /// PARTİSYON düzeyinde global olarak Joker kullanımı 1 ile sınırlandırılmıştır.
-        /// Dönüş: Tuple (List<List<Tile>> bestPairPartition, int totalPairCount)
-        /// Burada "totalPairCount" çiftlerin adedini temsil eder.
-        /// </summary>
-        public (List<List<Tile>> bestPairPartition, int totalPairCount) GetMaxPairPartitionWithJoker(List<Tile> hand)
-        {
-            int jokerCount = hand.Count(t => t.IsJoker);
-            var nonJokers = hand.Where(t => !t.IsJoker).ToList();
-
-            // Aynı (Color, Number) bazında gruplandırma
-            var groups = nonJokers.GroupBy(t => new { t.Color, t.Number })
-                .Select(g => new { Tile = g.First(), Count = g.Count() })
-                .ToList();
-
-            List<List<Tile>> partition = new List<List<Tile>>();
-            int totalPairs = 0;
-            // Gerçek çiftler (Count >= 2) oluşturuluyor.
-            foreach (var group in groups)
-            {
-                if (group.Count >= 2)
-                {
-                    partition.Add(new List<Tile> { group.Tile, group.Tile });
-                    totalPairs += 1;
-                }
-            }
-            // Eğer Joker kullanılabiliyorsa, Count == 1 olan gruplardan en iyisini seçiyoruz.
-            if (jokerCount > 0)
-            {
-                var candidate = groups
-                    .Where(g => g.Count == 1)
-                    .OrderByDescending(g => g.Tile.Number)
-                    .FirstOrDefault();
-                if (candidate != null)
-                {
-                    partition.Add(new List<Tile> { candidate.Tile, new Tile(candidate.Tile.Color, candidate.Tile.Number) { IsJoker = true } });
-                    totalPairs += 1;
-                }
-            }
-            return (partition, totalPairs);
-        }
-
-        /// <summary>
-        /// El (hand) içindeki tüm geçerli serileri (ardışık run'lar ve grup) Joker kullanımını da göz önünde bulundurarak bulur.
-        /// Her seri en az 3 taş içermelidir. Her seri içinde Joker yalnızca bir kere kullanılacaktır.
-        /// Dönüş: Tuple (List<Tile> series, int sum) şeklinde her seri ve seri toplamı.
-        /// </summary>
-        public List<(List<Tile> series, int sum)> GetAllValidSeriesWithJoker(List<Tile> hand)
-        {
-            var allSeries = new List<(List<Tile>, int)>();
-
-            int jokerCount = hand.Count(t => t.IsJoker);
-            var nonJokers = hand.Where(t => !t.IsJoker).ToList();
-
-            // 1. Renk bazlı ardışık seriler (run)
-            foreach (TileColor color in Enum.GetValues(typeof(TileColor)))
-            {
-                var colorTiles = nonJokers
-                    .Where(t => t.Color == color)
-                    .OrderBy(t => t.Number)
-                    .ToList();
-
-                for (int i = 0; i < colorTiles.Count; i++)
-                {
-                    int availableJokers = Math.Min(jokerCount, 1);
-                    var currentSeries = new List<Tile>();
-                    int currentSum = 0;
-                    int expected = colorTiles[i].Number;
-
-                    for (int num = expected; num <= 13; num++)
-                    {
-                        var tile = colorTiles.FirstOrDefault(t => t.Number == num && !currentSeries.Contains(t));
-                        if (tile != null)
-                        {
-                            currentSeries.Add(tile);
-                            currentSum += tile.Number;
-                        }
-                        else if (availableJokers > 0)
-                        {
-                            Tile fakeTile = new Tile(color, num) { IsJoker = true };
-                            currentSeries.Add(fakeTile);
-                            currentSum += num;
-                            availableJokers--;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    if (currentSeries.Count >= 3)
-                        allSeries.Add((new List<Tile>(currentSeries), currentSum));
-                }
-            }
-
-            // 2. Aynı sayıdan oluşan gruplar (group) – farklı renklerden
-            for (int num = 1; num <= 13; num++)
-            {
-                var groupTiles = nonJokers
-                    .Where(t => t.Number == num)
-                    .GroupBy(t => t.Color)
-                    .Select(g => g.First())
-                    .ToList();
-
-                int possibleGroupSize = Math.Min(4, groupTiles.Count + (jokerCount > 0 ? 1 : 0));
-                if (possibleGroupSize >= 3)
-                {
-                    var groupSeries = new List<Tile>(groupTiles);
-                    if (groupSeries.Count < possibleGroupSize && jokerCount > 0)
-                    {
-                        groupSeries.Add(new Tile(TileColor.Kırmızı, num) { IsJoker = true });
-                    }
-                    int groupSum = groupSeries.Sum(t => t.Number);
-                    allSeries.Add((groupSeries, groupSum));
-                }
-            }
-
-            return allSeries;
         }
     }
 
