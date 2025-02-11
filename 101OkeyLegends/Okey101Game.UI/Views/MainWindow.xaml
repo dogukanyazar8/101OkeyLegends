@@ -117,26 +117,39 @@
                         </Style>
                     </Border.Style>
                     <StackPanel>
-                        <TextBlock Text="Oyun Başladı!" Style="{StaticResource HeaderText}" FontSize="28" 
-                     HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                        <TextBlock Text="Benim Destem:" FontSize="18" FontWeight="SemiBold" Margin="5"/>
-                        <ListBox ItemsSource="{Binding MyDeck}" Height="200" Style="{StaticResource ModernListBox}"/>
+                        <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10"
+                            FontFamily="Segoe UI" FontSize="24" FontWeight="Bold" Foreground="Black"
+                            Text="{Binding PlayerName, StringFormat='{}{0} Oyun Başladı!'}"/>
+                    <TextBlock Text="Benim Destem:" FontSize="18" FontWeight="SemiBold" Margin="5"/>
+                        <ListBox ItemsSource="{Binding MyDeck}" Height="50" Style="{StaticResource ModernListBox}"/>
                         <TextBlock Text="Dağıtılmayan Taşlar:" FontSize="18" FontWeight="SemiBold" Margin="10,20,10,5"/>
                         <ListBox ItemsSource="{Binding RemainingTiles}" Height="10" Style="{StaticResource ModernListBox}"/>
-                    <!-- Yeni Eklenen Alan: Elimi Seri Diz -->
+                    <!-- Seri Dizme Alanı -->
                     <StackPanel Orientation="Vertical" Margin="10">
                         <Button Content="Elimi Seri Diz" Command="{Binding SeriDizCommand}" 
-                      Width="150" Height="40" Background="Orange" Foreground="White"/>
+            Width="250" Height="40" Background="Orange" Foreground="White"/>
                         <Label Content="{Binding SeriesSum, StringFormat='Seri Toplamı: {0}'}"
-                     FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Oluşturulan Seri:" HorizontalAlignment="Center" 
-                         FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
-                        <ListBox ItemsSource="{Binding SeriesTiles}" Height="150"
-                       FontFamily="Segoe UI" FontSize="16" Padding="8"
-                       Background="White" BorderBrush="Blue" BorderThickness="1"/>
+           FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Oluşturulan Seriler:" HorizontalAlignment="Center" 
+               FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
+                        <ListBox ItemsSource="{Binding SeriesTiles}" Width="250" Height="100"
+             FontFamily="Segoe UI" FontSize="16" Padding="8"
+             Background="White" BorderBrush="Blue" BorderThickness="1"/>
+                    </StackPanel>
+                    <!-- Çift Dizme Alanı -->
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <Button Content="Elimi Çift Diz" Command="{Binding CiftDizCommand}" 
+            Width="250" Height="40" Background="DarkOrange" Foreground="White"/>
+                        <Label Content="{Binding PairSum, StringFormat='Çift Toplamı: {0}'}"
+           FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Oluşturulan Çiftler:" HorizontalAlignment="Center" 
+               FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
+                        <ListBox ItemsSource="{Binding PairTiles}" Width="250" Height="100"
+             FontFamily="Segoe UI" FontSize="16" Padding="8"
+             Background="White" BorderBrush="Blue" BorderThickness="1"/>
                     </StackPanel>
                 </StackPanel>
-                </Border>
+            </Border>
             </Grid>
         </Grid>
     </Window>
