@@ -7,9 +7,10 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
 {
     public class GameManager
     {
+        public bool TestMode { get; set; } = false;
         #region Constants
 
-        // Oyuncu dağıtımı için sabit değerler (4 oyuncu varsayılmıştır)
+        // 4 oyuncu varsayarak dağıtım sabitleri
         private const int FirstPlayerTileCount = 22;
         private const int OtherPlayerTileCount = 21;
 
@@ -50,13 +51,10 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
             DistributeTiles();
         }
 
-        /// <summary>
-        /// Her renkten 1-13 arası taşlardan 2 adet ekler.
-        /// Ekstra taşlar eklenebilir.
-        /// </summary>
         private void CreateTiles()
         {
             Tiles.Clear();
+            // Her renkten 1-13 arası taşlardan 2 adet ekleniyor.
             foreach (TileColor color in Enum.GetValues(typeof(TileColor)))
             {
                 for (int i = 1; i <= 13; i++)
@@ -67,9 +65,6 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
             }
         }
 
-        /// <summary>
-        /// Fisher–Yates algoritması ile taşları karıştırır.
-        /// </summary>
         private void ShuffleTiles()
         {
             int n = Tiles.Count;
@@ -81,16 +76,13 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
             }
         }
 
-        /// <summary>
-        /// Gösterge taşını belirler; göstergeden sonraki değere sahip taş(lar) Joker olarak işaretlenir.
-        /// </summary>
         private void DetermineIndicatorAndJoker()
         {
-            // Gösterge, destedeki orta konumdaki taş olarak belirleniyor.
+            // Gösterge, destedeki orta konumdaki taş olarak seçilir.
             int indicatorIndex = Tiles.Count / 2;
             IndicatorTile = Tiles[indicatorIndex];
 
-            // Joker: Göstergeden sonraki sayı (13 ise 1)
+            // Joker: Gösterge taşının sonraki değeri (13 ise 1)
             int jokerNumber = IndicatorTile.Number == 13 ? 1 : IndicatorTile.Number + 1;
 
             // İlgili renk ve numaraya sahip tüm taşları bul.
@@ -106,10 +98,6 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
             }
         }
 
-        /// <summary>
-        /// Oyuncuları oluşturur.
-        /// </summary>
-        /// <param name="playerNames">Oyuncu isimleri listesi</param>
         private void CreatePlayers(IEnumerable<string> playerNames)
         {
             Players.Clear();
@@ -119,9 +107,6 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
             }
         }
 
-        /// <summary>
-        /// Taşları oyunculara dağıtır. İlk oyuncuya 22, diğerlerine 21 taş verilir.
-        /// </summary>
         private void DistributeTiles()
         {
             int tileIndex = 0;
@@ -137,6 +122,21 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
                     }
                 }
             }
+
+            if (TestMode && Players.Count > 0 && JokerTile != null)
+            {
+                Players[0].Hand.Add(JokerTile.Clone());
+            }
+        }
+
+        public void InjectIndicatorJokerToFirstPlayer()
+        {
+            if (Players != null && Players.Count > 0 && JokerTile != null)
+            {
+                // JokerTile'ı klonlayıp ilk oyuncunun eline ekleyelim.
+                Tile clonedJoker = JokerTile.Clone();
+                Players[0].Hand.Add(clonedJoker);
+            }
         }
 
         #endregion
@@ -144,8 +144,8 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
         #region Series (Per) Partition Hesaplamaları
 
         /// <summary>
-        /// El (hand) içindeki tüm geçerli serileri (ardışık run'lar ve grup) Joker kullanımını da göz önünde bulundurarak bulur.
-        /// Her seri en az 3 taş içermelidir. Her seri içinde Joker yalnızca bir kere kullanılacaktır.
+        /// El (hand) içindeki tüm geçerli serileri (ardışık run'lar ve grup) Joker kullanımını göz önünde bulundurarak bulur.
+        /// Her seri en az 3 taş içermelidir. Her seri içinde Joker yalnızca 1 kez kullanılacaktır.
         /// Dönüş: Tuple (List<Tile> series, int sum) şeklinde her seri ve seri toplamı.
         /// </summary>
         public List<(List<Tile> series, int sum)> GetAllValidSeriesWithJoker(List<Tile> hand)
@@ -166,7 +166,7 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
 
                 for (int i = 0; i < colorTiles.Count; i++)
                 {
-                    // Her seri için Joker kullanımı yalnızca 1 ile sınırlandırılıyor.
+                    // Her seri için, o seride en fazla 1 Joker kullanılacak.
                     int availableJokers = Math.Min(jokerCount, 1);
                     var currentSeries = new List<Tile>();
                     int currentSum = 0;
@@ -174,7 +174,6 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
 
                     for (int num = expected; num <= 13; num++)
                     {
-                        // Aynı seride henüz kullanılmamış gerçek taş var mı?
                         var tile = colorTiles.FirstOrDefault(t => t.Number == num && !currentSeries.Contains(t));
                         if (tile != null)
                         {
@@ -183,11 +182,11 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
                         }
                         else if (availableJokers > 0)
                         {
-                            // Joker kullanarak eksik numarayı doldur.
+                            // Joker'i eksik numarayı doldurmak için kullan.
                             Tile fakeTile = new Tile(color, num) { IsJoker = true };
                             currentSeries.Add(fakeTile);
                             currentSum += num;
-                            availableJokers--; // Bu seri için Joker artık kullanıldı.
+                            availableJokers--; // Bu seri için Joker kullanıldı.
                         }
                         else
                         {
@@ -214,7 +213,7 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
                     var groupSeries = new List<Tile>(groupTiles);
                     if (groupSeries.Count < possibleGroupSize && jokerCount > 0)
                     {
-                        // Joker'i yalnızca bir kez ekle.
+                        // Sadece 1 Joker ekle.
                         groupSeries.Add(new Tile(TileColor.Kırmızı, num) { IsJoker = true });
                     }
                     int groupSum = groupSeries.Sum(t => t.Number);
@@ -228,7 +227,7 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
         /// <summary>
         /// Elindeki valid serilerden (Joker'leri de kullanarak) çakışmayan serilerden oluşan,
         /// toplam değeri maksimum olan partition'ı bulur.
-        /// PARTİSYON düzeyinde global kullanılan Joker sayısını 1 ile sınırlandırır.
+        /// **Global düzeyde**, kullanılan Joker sayısı artık elinizdeki okey sayısına eşit olacak şekilde sınırlandırılır.
         /// Dönüş: Tuple (List<List<Tile>> bestPartition, int totalSum)
         /// </summary>
         public (List<List<Tile>> bestPartition, int totalSum) GetMaxSeriesPartitionWithJoker(List<Tile> hand)
@@ -238,7 +237,9 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
             int bestSum = 0;
             List<List<Tile>> bestPartition = new List<List<Tile>>();
 
-            // DFS algoritmasını ayrı bir metot olarak da yazabiliriz.
+            // Elinizdeki toplam okey sayısı:
+            int totalJokers = hand.Count(t => t.IsJoker);
+
             void DFS(int index, HashSet<Tile> used, List<List<Tile>> currentPartition, int currentSum, int jokerUsed)
             {
                 if (currentSum > bestSum)
@@ -250,10 +251,10 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
                 {
                     var series = validSeries[i].series;
                     int seriesJokerCount = series.Count(t => t.IsJoker);
-                    // Global olarak yalnızca 1 Joker kullanılmasına izin ver.
-                    if (jokerUsed + seriesJokerCount > 1)
+                    // Global olarak, partition içinde kullanılabilecek maksimum okey sayısı,
+                    // elinizdeki okey sayısına eşit olsun.
+                    if (jokerUsed + seriesJokerCount > totalJokers)
                         continue;
-                    // Aynı taşın tekrar kullanılmaması için kontrol.
                     if (series.Any(tile => used.Contains(tile)))
                         continue;
                     foreach (var tile in series)
@@ -278,7 +279,7 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
         /// Elindeki taşlardan, aynı (Color, Number) değerine sahip çiftleri (pair) oluşturur.
         /// Bir çift; aynı numaralı iki taş olarak tanımlanır.
         /// Eğer bir grup için tek taş varsa ve Joker mevcutsa, Joker kullanılarak çift tamamlanır.
-        /// PARTİSYON düzeyinde global olarak Joker kullanımı 1 ile sınırlandırılmıştır.
+        /// **Global düzeyinde**, kullanılabilecek Joker sayısı elinizdeki okey sayısına göre ayarlanır.
         /// Dönüş: Tuple (List<List<Tile>> bestPairPartition, int totalPairCount)
         /// Burada "totalPairCount", oluşturulan çiftlerin adedini temsil eder.
         /// </summary>
@@ -287,7 +288,7 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
             int jokerCount = hand.Count(t => t.IsJoker);
             var nonJokers = hand.Where(t => !t.IsJoker).ToList();
 
-            // Aynı (Color, Number) bazında gruplandırma.
+            // Aynı (Color, Number) bazında gruplandırma
             var groups = nonJokers.GroupBy(t => new { t.Color, t.Number })
                 .Select(g => new { Tile = g.First(), Count = g.Count() })
                 .ToList();
@@ -303,14 +304,14 @@ namespace _101OkeyLegends.Okey101Game.Core.Services
                     totalPairs += 1;
                 }
             }
-            // Eğer Joker kullanılabiliyorsa, Count == 1 olan gruplardan en yüksek değeri seç.
+            // Eğer okey (joker) mevcutsa, Count == 1 olan gruplardan en iyilerini kullanın.
             if (jokerCount > 0)
             {
-                var candidate = groups
+                var candidates = groups
                     .Where(g => g.Count == 1)
                     .OrderByDescending(g => g.Tile.Number)
-                    .FirstOrDefault();
-                if (candidate != null)
+                    .Take(jokerCount); // Elinizdeki okey sayısı kadar çift oluşturun.
+                foreach (var candidate in candidates)
                 {
                     partition.Add(new List<Tile> { candidate.Tile, new Tile(candidate.Tile.Color, candidate.Tile.Number) { IsJoker = true } });
                     totalPairs += 1;

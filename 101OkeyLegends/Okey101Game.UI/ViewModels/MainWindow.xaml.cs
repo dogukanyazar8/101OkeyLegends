@@ -55,6 +55,21 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             set => SetProperty(ref _pairSum, value);
         }
 
+        private int _remainingTileCount;
+        public int RemainingTileCount
+        {
+            get => _remainingTileCount;
+            set => SetProperty(ref _remainingTileCount, value);
+        }
+
+        private string _jokerTileInfo;
+        public string JokerTileInfo
+        {
+            get => _jokerTileInfo;
+            set => SetProperty(ref _jokerTileInfo, value);
+        }
+
+
         // Oyun başlaması için oyuncu sayısının kontrolü (örneğin 4 oyuncu)
         public bool CanStartGame => PlayerList.Count == 4;
 
@@ -139,6 +154,25 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
                 });
             });
 
+            _connection.On<Tile[]>("ReceiveRemainingTiles", (tiles) =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    RemainingTiles.Clear();
+                    foreach (var tile in tiles)
+                        RemainingTiles.Add(tile);
+                    RemainingTileCount = RemainingTiles.Count;
+                });
+            });
+
+            _connection.On<string>("UpdateJokerTile", (jokerInfo) =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    JokerTileInfo = jokerInfo;
+                });
+            });
+
             try
             {
                 await _connection.StartAsync();
@@ -173,6 +207,7 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             {
                 foreach (var series in result.bestPartition)
                 {
+                    // Her bir seriyi string formatında oluşturuyoruz.
                     string seriesDesc = string.Join(" - ", series.Select(t =>
                         t.IsJoker ? $"Okey (as {t.Color} {t.Number})" : $"{t.Color} {t.Number}"));
                     seriesDesc += $" (Toplam: {series.Sum(t => t.Number)})";
@@ -206,7 +241,7 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
                     pairDesc += " (Çift)";
                     PairTiles.Add(pairDesc);
                 }
-                // Toplam çift sayısı (adet) olarak PairSum atanır.
+                // PairSum, oluşturulan çiftlerin toplam adedini temsil ediyor.
                 PairSum = result.totalPairCount;
             }
             else

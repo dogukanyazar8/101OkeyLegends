@@ -6,57 +6,60 @@
         xmlns:local="clr-namespace:_101OkeyLegends.Okey101Game.UI.ViewModels"
         xmlns:vm="clr-namespace:_101OkeyLegends.Okey101Game.UI.ViewModels"
         mc:Ignorable="d"
-        Title="101 Okey - Multiplayer" Height="1000" Width="600" ResizeMode="NoResize"
+        Title="101 Okey Legends - CODEXSOFTWARE" Height="1000" Width="800" ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen">
-        <Window.DataContext>
-            <vm:MainWindowViewModel/>
-        </Window.DataContext>
-        <Window.Resources>
-            <!-- Başlık ve metinler için stil -->
-            <Style TargetType="TextBlock" x:Key="HeaderText">
-                <Setter Property="FontSize" Value="28"/>
-                <Setter Property="FontWeight" Value="Bold"/>
-                <Setter Property="Foreground" Value="#333"/>
-            </Style>
-            <!-- Modern Button stili (köşeler yuvarlatılmamış) -->
-            <Style TargetType="Button" x:Key="ModernButton">
-                <Setter Property="Background" Value="#2196F3"/>
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="Padding" Value="10,5"/>
-                <Setter Property="Margin" Value="5"/>
-                <Setter Property="FontSize" Value="16"/>
-                <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="HorizontalAlignment" Value="Center"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" 
-                    Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <!-- Modern TextBox stili -->
-            <Style TargetType="TextBox" x:Key="ModernTextBox">
-                <Setter Property="FontSize" Value="16"/>
-                <Setter Property="Padding" Value="5"/>
-                <Setter Property="Margin" Value="5"/>
-                <Setter Property="BorderBrush" Value="#999"/>
-                <Setter Property="BorderThickness" Value="1"/>
-            </Style>
-            <!-- Modern ListBox stili -->
-            <Style TargetType="ListBox" x:Key="ModernListBox">
-                <Setter Property="FontSize" Value="16"/>
-                <Setter Property="Margin" Value="5"/>
-                <Setter Property="Padding" Value="5"/>
-                <Setter Property="BorderBrush" Value="#ccc"/>
-                <Setter Property="BorderThickness" Value="1"/>
-            </Style>
-        </Window.Resources>
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <!-- Başlık ve metinler için stil -->
+        <Style TargetType="TextBlock" x:Key="HeaderText">
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#333"/>
+        </Style>
+        <!-- Modern Button stili (köşeler yuvarlatılmamış) -->
+        <Style TargetType="Button" x:Key="ModernButton">
+            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Modern TextBox stili -->
+        <Style TargetType="TextBox" x:Key="ModernTextBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderBrush" Value="#999"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <!-- Modern ListBox stili -->
+        <Style TargetType="ListBox" x:Key="ModernListBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="BorderBrush" Value="#ccc"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
+
+    <!-- ScrollViewer eklenerek tüm içeriğin kaydırılabilir olması sağlanır -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Background="#f0f0f0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -64,9 +67,9 @@
             </Grid.RowDefinitions>
 
             <!-- Üst Başlık Bölgesi (köşeler düz) -->
-            <Border Grid.Row="0" Background="#2196F3" Padding="20">
-                <TextBlock Text="101 Okey - Multiplayer" Foreground="White" Style="{StaticResource HeaderText}" 
-                 FontSize="32" HorizontalAlignment="Center"/>
+            <Border Grid.Row="0" Background="#2196F3" Padding="10" Height="60" Margin="10">
+                <TextBlock Text="101 Okey Legends" Foreground="White" Style="{StaticResource HeaderText}" 
+                           FontSize="24" HorizontalAlignment="Center"/>
             </Border>
 
             <!-- İçerik Bölgesi -->
@@ -90,7 +93,7 @@
                     </Border.Style>
                     <StackPanel>
                         <TextBlock Text="Lobi" Style="{StaticResource HeaderText}" FontSize="28" 
-                     HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                   HorizontalAlignment="Center" Margin="0,0,0,10"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,10">
                             <TextBlock Text="Oyuncu Adı:" VerticalAlignment="Center" FontSize="16" Margin="0,0,5,0"/>
                             <TextBox Text="{Binding PlayerName, UpdateSourceTrigger=PropertyChanged}" Width="250" Style="{StaticResource ModernTextBox}"/>
@@ -99,57 +102,65 @@
                         <TextBlock Text="Bağlı Oyuncular:" FontSize="18" FontWeight="Bold" Margin="5"/>
                         <ListBox ItemsSource="{Binding PlayerList}" Height="150" Style="{StaticResource ModernListBox}"/>
                         <Button Height="50" Content="Oyunu Başlat" Command="{Binding StartGameCommand}" 
-                  Style="{StaticResource ModernButton}" IsEnabled="{Binding CanStartGame}" 
-                  Margin="10" Width="200" HorizontalAlignment="Center"/>
+                                Style="{StaticResource ModernButton}" IsEnabled="{Binding CanStartGame}" 
+                                Margin="10" Width="200" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
 
-            <!-- Oyun Paneli (köşeleri keskin) -->
-            <Border Grid.Row="1" Padding="20" Background="White" BorderBrush="#ccc" BorderThickness="1" Margin="0,20,0,0">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsGameStarted}" Value="True">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <StackPanel>
-                    <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10"
-                            FontFamily="Segoe UI" FontSize="24" FontWeight="Bold" Foreground="Black"
-                            Text="{Binding PlayerName, StringFormat='{}{0} Oyun Başladı!'}"/>
-                    <TextBlock Text="Benim Destem:" FontSize="18" FontWeight="SemiBold" Margin="5"/>
-                    <ListBox ItemsSource="{Binding MyDeck}" Height="50" Style="{StaticResource ModernListBox}"/>
-                    <TextBlock Text="Dağıtılmayan Taşlar:" FontSize="18" FontWeight="SemiBold" Margin="10,20,10,5"/>
-                    <ListBox ItemsSource="{Binding RemainingTiles}" Height="10" Style="{StaticResource ModernListBox}"/>
-                    <!-- Seri Dizme Alanı -->
-                    <StackPanel Orientation="Vertical" Margin="10">
-                        <Button Content="Elimi Seri Diz" Command="{Binding SeriDizCommand}" 
-            Width="250" Height="40" Background="Orange" Foreground="White"/>
-                        <Label Content="{Binding SeriesSum, StringFormat='Seri Toplamı: {0}'}"
-           FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Oluşturulan Seriler:" HorizontalAlignment="Center" 
-               FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
-                        <ListBox ItemsSource="{Binding SeriesTiles}" Width="350" Height="100"
-             FontFamily="Segoe UI" FontSize="16" Padding="8"
-             Background="White" BorderBrush="Blue" BorderThickness="1"/>
+                <!-- Oyun Paneli (köşeleri keskin) -->
+                <Border Grid.Row="1" Padding="20" Background="White" BorderBrush="#ccc" BorderThickness="1" Margin="0,20,0,0">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsGameStarted}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10"
+                                   FontFamily="Segoe UI" FontSize="24" FontWeight="Bold" Foreground="Black"
+                                   Text="{Binding PlayerName, StringFormat='{}{0} Oyun Başladı!'}"/>
+                        <TextBlock Text="Benim Destem:" FontSize="18" FontWeight="SemiBold" Margin="5"/>
+                        <ListBox ItemsSource="{Binding MyDeck}" Height="250" Style="{StaticResource ModernListBox}"/>
+                        <TextBlock Text="Dağıtılmayan Taş Sayısı:" 
+                                   FontFamily="Segoe UI" FontSize="18" FontWeight="SemiBold" Foreground="Black" 
+                                   HorizontalAlignment="Center" Margin="10"/>
+                        <Label Content="{Binding RemainingTileCount, StringFormat='Dağıtılmayan Taş Sayısı: {0}'}"
+                               FontFamily="Segoe UI" FontSize="16" FontWeight="Bold" Foreground="Black" 
+                               HorizontalAlignment="Center"/>
+                        <Label Content="{Binding JokerTileInfo, StringFormat='Okey: {0}'}"
+                               FontFamily="Segoe UI" FontSize="16" FontWeight="Bold" Foreground="Black" 
+                               HorizontalAlignment="Center"/>
+                        <!-- Seri Dizme Alanı -->
+                        <StackPanel Orientation="Vertical" Margin="10">
+                            <Button Content="Elimi Seri Diz" Command="{Binding SeriDizCommand}" 
+                                    Width="250" Height="40" Background="Orange" Foreground="White"/>
+                            <Label Content="{Binding SeriesSum, StringFormat='Seri Toplamı: {0}'}"
+                                   FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Oluşturulan Seriler:" HorizontalAlignment="Center" 
+                                       FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
+                            <ListBox ItemsSource="{Binding SeriesTiles}" Width="400" Height="100"
+                                     FontFamily="Segoe UI" FontSize="16" Padding="8"
+                                     Background="White" BorderBrush="Blue" BorderThickness="1"/>
+                        </StackPanel>
+                        <!-- Çift Dizme Alanı -->
+                        <StackPanel Orientation="Vertical" Margin="10">
+                            <Button Content="Elimi Çift Diz" Command="{Binding CiftDizCommand}" 
+                                    Width="250" Height="40" Background="DarkOrange" Foreground="White"/>
+                            <Label Content="{Binding PairSum, StringFormat='Çift Toplamı: {0}'}"
+                                   FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Oluşturulan Çiftler:" HorizontalAlignment="Center" 
+                                       FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
+                            <ListBox ItemsSource="{Binding PairTiles}" Width="400" Height="100"
+                                     FontFamily="Segoe UI" FontSize="16" Padding="8"
+                                     Background="White" BorderBrush="Blue" BorderThickness="1"/>
+                        </StackPanel>
                     </StackPanel>
-                    <!-- Çift Dizme Alanı -->
-                    <StackPanel Orientation="Vertical" Margin="10">
-                        <Button Content="Elimi Çift Diz" Command="{Binding CiftDizCommand}" 
-            Width="250" Height="40" Background="DarkOrange" Foreground="White"/>
-                        <Label Content="{Binding PairSum, StringFormat='Çift Toplamı: {0}'}"
-           FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Oluşturulan Çiftler:" HorizontalAlignment="Center" 
-               FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
-                        <ListBox ItemsSource="{Binding PairTiles}" Width="350" Height="100"
-             FontFamily="Segoe UI" FontSize="16" Padding="8"
-             Background="White" BorderBrush="Blue" BorderThickness="1"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
+                </Border>
+            </Grid>
         </Grid>
-    </Grid>
+    </ScrollViewer>
 </Window>

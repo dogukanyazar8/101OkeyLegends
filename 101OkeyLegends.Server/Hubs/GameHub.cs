@@ -26,6 +26,12 @@ namespace _101OkeyLegends.Server.Hubs
                 _gameManager = new GameManager();
                 _gameManager.InitializeGame(players);
 
+                // Dağıtım, gösterge, joker belirleme vb. işlemler GameManager içinde yapılır.
+                // Artık JokerTile property’si GameManager içinde güncellenmiş olmalıdır.
+                string jokerTileInfo = _gameManager.JokerTile != null ? _gameManager.JokerTile.ToString() : "Okey Belirlenmedi";
+                // İstemciler, joker taşının bilgisini UpdateJokerTile mesajı ile alacak.
+                await Clients.All.SendAsync("UpdateJokerTile", jokerTileInfo);
+
                 // Her oyuncuya kendi destesini gönderelim.
                 for (int i = 0; i < _gameManager.Players.Count; i++)
                 {
