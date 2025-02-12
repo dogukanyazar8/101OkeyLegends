@@ -132,7 +132,7 @@
            FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
                         <TextBlock Text="Oluşturulan Seriler:" HorizontalAlignment="Center" 
                FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
-                        <ListBox ItemsSource="{Binding SeriesTiles}" Width="250" Height="100"
+                        <ListBox ItemsSource="{Binding SeriesTiles}" Width="350" Height="100"
              FontFamily="Segoe UI" FontSize="16" Padding="8"
              Background="White" BorderBrush="Blue" BorderThickness="1"/>
                     </StackPanel>
@@ -144,7 +144,7 @@
            FontSize="16" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center"/>
                         <TextBlock Text="Oluşturulan Çiftler:" HorizontalAlignment="Center" 
                FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="10"/>
-                        <ListBox ItemsSource="{Binding PairTiles}" Width="250" Height="100"
+                        <ListBox ItemsSource="{Binding PairTiles}" Width="350" Height="100"
              FontFamily="Segoe UI" FontSize="16" Padding="8"
              Background="White" BorderBrush="Blue" BorderThickness="1"/>
                     </StackPanel>

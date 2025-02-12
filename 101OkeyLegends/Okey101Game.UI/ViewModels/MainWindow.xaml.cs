@@ -1,28 +1,26 @@
 ﻿using System.Collections.ObjectModel;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using _101OkeyLegends.Okey101Game.Core.Services;
 using _101OkeyLegends.Okey101Game.Domain.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Linq;
 using Microsoft.AspNetCore.SignalR.Client;
-using System.Net.Http;
 
 namespace _101OkeyLegends.Okey101Game.UI.ViewModels
 {
     public class MainWindowViewModel : ObservableObject
     {
+        #region Fields & Properties
+
+        private HubConnection _connection;
+
+        // Oyun alanındaki taşlar
         public ObservableCollection<Tile> MyDeck { get; set; } = new ObservableCollection<Tile>();
         public ObservableCollection<Tile> RemainingTiles { get; set; } = new ObservableCollection<Tile>();
+
+        // Oyuncu listesi
         public ObservableCollection<string> PlayerList { get; set; } = new ObservableCollection<string>();
 
         private string _playerName;
@@ -39,7 +37,7 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             set => SetProperty(ref _isGameStarted, value);
         }
 
-        // Seri dizim sonucu için
+        // Seri (per) dizme sonuçları
         public ObservableCollection<string> SeriesTiles { get; set; } = new ObservableCollection<string>();
         private int _seriesSum;
         public int SeriesSum
@@ -48,7 +46,7 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             set => SetProperty(ref _seriesSum, value);
         }
 
-        // Çift dizim sonucu için
+        // Çift dizme sonuçları
         public ObservableCollection<string> PairTiles { get; set; } = new ObservableCollection<string>();
         private int _pairSum;
         public int PairSum
@@ -56,27 +54,35 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             get => _pairSum;
             set => SetProperty(ref _pairSum, value);
         }
+
+        // Oyun başlaması için oyuncu sayısının kontrolü (örneğin 4 oyuncu)
         public bool CanStartGame => PlayerList.Count == 4;
+
+        #endregion
+
+        #region Commands
 
         public RelayCommand ConnectCommand { get; }
         public RelayCommand StartGameCommand { get; }
         public RelayCommand SeriDizCommand { get; }
         public RelayCommand CiftDizCommand { get; }
 
-        private HubConnection _connection;
+        #endregion
+
+        #region Constructor
 
         public MainWindowViewModel()
         {
             PlayerName = "Oyuncu1";
             IsGameStarted = false;
+
+            // Komutlar asenkron ya da senkron olarak tanımlanıyor.
             ConnectCommand = new RelayCommand(async () => await ConnectToHub());
             StartGameCommand = new RelayCommand(async () => await ExecuteStartGame(), () => CanStartGame);
             SeriDizCommand = new RelayCommand(ExecuteSeriDiz);
             CiftDizCommand = new RelayCommand(ExecuteCiftDiz);
 
-
-
-            // PlayerList güncellendiğinde CanStartGame bilgisini de tetikleyelim
+            // Oyuncu listesi değiştiğinde CanStartGame kontrolünü tetikleyelim.
             PlayerList.CollectionChanged += (s, e) =>
             {
                 OnPropertyChanged(nameof(CanStartGame));
@@ -84,11 +90,9 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             };
         }
 
-        private async Task ExecuteStartGame()
-        {
-            // Sunucuya oyunu başlat çağrısı yapıyoruz.
-            await _connection.InvokeAsync("StartGameFromClient");
-        }
+        #endregion
+
+        #region Connection & Game Start Methods
 
         private async Task ConnectToHub()
         {
@@ -140,19 +144,25 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
                 await _connection.StartAsync();
                 await _connection.InvokeAsync("JoinGame", PlayerName);
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 MessageBox.Show($"Bağlantı hatası: {ex.Message}");
             }
         }
 
-        //TODO: Bu metodu kontrol et!
-
-        private void StartGame()
+        private async Task ExecuteStartGame()
         {
-            IsGameStarted = true;
-            // Ek oyun başlangıç ayarlarını burada yapabilirsiniz.
+            await _connection.InvokeAsync("StartGameFromClient");
         }
+
+        #endregion
+
+        #region Command Execution Methods
+
+        /// <summary>
+        /// Elindeki taşlardan Joker global düzeyde yalnızca 1 kullanılarak maksimum seri partition'ı oluşturur.
+        /// Sonuç olarak, oluşturulan seriler ve toplam seri değeri hesaplanır.
+        /// </summary>
         private void ExecuteSeriDiz()
         {
             var gm = new GameManager();
@@ -176,6 +186,11 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
             }
         }
 
+        /// <summary>
+        /// Elindeki taşlardan aynı (Color, Number) çiftlerini oluşturur.
+        /// Eğer çift oluşturulamıyorsa ve Joker varsa, Joker kullanılarak çift tamamlanır.
+        /// Toplam, oluşturulan çift sayısına eşittir.
+        /// </summary>
         private void ExecuteCiftDiz()
         {
             var gm = new GameManager();
@@ -188,11 +203,10 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
                 {
                     string pairDesc = string.Join(" - ", pair.Select(t =>
                         t.IsJoker ? $"Okey (as {t.Color} {t.Number})" : $"{t.Color} {t.Number}"));
-                    // Burada, çift olduğu bilgisini ekleyelim.
                     pairDesc += " (Çift)";
                     PairTiles.Add(pairDesc);
                 }
-                // Çift toplamı artık çift sayısının adedidir.
+                // Toplam çift sayısı (adet) olarak PairSum atanır.
                 PairSum = result.totalPairCount;
             }
             else
@@ -200,5 +214,7 @@ namespace _101OkeyLegends.Okey101Game.UI.ViewModels
                 PairSum = 0;
             }
         }
+
+        #endregion
     }
 }
